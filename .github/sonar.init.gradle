@@ -1,0 +1,31 @@
+// Gradle init script used only by CI (.github/workflows/build.yml).
+// Adds JaCoCo coverage and the SonarScanner for Gradle without changing the
+// upstream build files.
+initscript {
+  repositories {
+    gradlePluginPortal()
+  }
+  dependencies {
+    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:7.6.0.18749"
+  }
+}
+
+allprojects {
+  pluginManager.withPlugin("java") {
+    apply plugin: "jacoco"
+    tasks.withType(Test).configureEach {
+      // Test failures are reported but never block the scan.
+      ignoreFailures = true
+      finalizedBy "jacocoTestReport"
+    }
+    tasks.named("jacocoTestReport") {
+      reports {
+        xml.required = true
+      }
+    }
+  }
+}
+
+rootProject {
+  apply plugin: org.sonarqube.gradle.SonarQubePlugin
+}
